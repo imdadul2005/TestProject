@@ -25,13 +25,23 @@ public class AlertTest {
 
 		System.out.println(System.getProperty("user.dir"));
 	 
+		
+		/* This is the part where the configuration files needs to be set before running the setupIOC */
+		String node1ServerName = "FSS-R720-43";
+		String node2ServerName = "FSS-R720-42";
+		String iocName = "FSS-Shamol";
+		String managementIP = "10.8.13.145";
+		String qurom1Disk = "(103:0:1:5)";
+		String qurom2Disk = "(102:0:0:24)";
+		
+		
      	//Login to Freestor
 		
 		driverSet("chrome");
 		driver.manage().deleteAllCookies();
 		driver.navigate().to("http://192.168.13.65");
 		driver.manage().window().maximize();
-		Thread.sleep(2500);
+		Thread.sleep(1500);
 		driver.findElement(By.xpath("//input[@name='username']")).sendKeys("superadmin");
 		driver.findElement(By.xpath("//input[@name='domain']")).sendKeys("");
 		driver.findElement(By.xpath("//input[@name='password']")).sendKeys("freestor");
@@ -43,12 +53,12 @@ public class AlertTest {
 		//click manage
 		
 		topDropDown("Manage");
-		selectServer("FSS-R720-42");	
+		selectServer(node1ServerName);	
 		manageTab("Settings");
 		//settingAction("Configuration Repository");
 	    //Find the tab elements
 		//Settings options = .title.ng-binding
-     	setUpIOC("FSS-R720-43","FSS-4243","10.6.13.145");
+     	setUpIOC(node2ServerName,iocName,managementIP,qurom1Disk,qurom2Disk);
 		//setUpIOMC();
 
 	    //driver.findElement(By.xpath("//button[.='Submit']")).click();
@@ -149,7 +159,7 @@ public static void setUpIOMC(){
 	psdeployment();
 }
 
-public static void setUpIOC(String partnerServer,String clustername,String clusterIP) throws InterruptedException{
+public static void setUpIOC(String partnerServer,String clustername,String clusterIP,String qurom1, String qurom2) throws InterruptedException{
 	
 	// Go to the iocluster page
 	driver.navigate().to(driver.getCurrentUrl()+"iocluster");
@@ -171,7 +181,14 @@ public static void setUpIOC(String partnerServer,String clustername,String clust
 	
 	//Management IP address
 	driver.findElement(By.xpath("//input[@ng-model='ioclusterItem.mgmtIp']")).sendKeys(clusterIP);
+		
+	//Detect Quorum Repository physical device need a better coding here for sure
 	
+	String qurom1Location= "html/body/div[1]/div/div[3]/div/div[2]/div/div/div/div[2]/div[2]/div/form/div[2]/div[4]/div[2]/div[1]/div/div/div/div/span";
+	String qurom2Location= "html/body/div[1]/div/div[3]/div/div[2]/div/div/div/div[2]/div[2]/div/form/div[2]/div[4]/div[2]/div[2]/div/div/div/span";
+
+	findFromList(qurom1Location, ".ng-binding.ng-scope",qurom1);
+	findFromList(qurom2Location, ".ng-binding.ng-scope", qurom2);
 	
 	//IPMI username, password and confirm password 
 
@@ -233,6 +250,16 @@ public static void waitUntilDisappear(int sec,String type,String locator){
 	if (type.equalsIgnoreCase("css"))
 		wait.until(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(locator)));
 	}
+
+
+public static void findFromList(String listLocation, String csslistElement, String itemOnTheList){
+	waitUntilAppear(10, listLocation);
+	driver.findElement(By.xpath(listLocation)).click();
+	List<WebElement> navList = driver.findElements(By.cssSelector(csslistElement));
+	findItemOnlist(navList, itemOnTheList);
+	}
+
+
 }
 
 
