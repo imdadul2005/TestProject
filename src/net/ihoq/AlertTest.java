@@ -7,6 +7,8 @@ import java.util.concurrent.TimeUnit;
 import org.openqa.selenium.Alert;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Keys;
+import org.openqa.selenium.NoSuchElementException;
+import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -18,21 +20,31 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 public class AlertTest {
-
-	static WebDriver driver = null;
-	public static void main(String[] args) throws InterruptedException {
+static WebDriver driver = null;
+public static void main(String[] args) throws InterruptedException {
 		// TODO Auto-generated method stub
 
 		System.out.println(System.getProperty("user.dir"));
 	 
 		
 		/* This is the part where the configuration files needs to be set before running the setupIOC */
-		String node1ServerName = "FSS-R720-43";
+		String node1ServerName = "10.6.13.42";
 		String node2ServerName = "FSS-R720-42";
 		String iocName = "FSS-Shamol";
 		String managementIP = "10.8.13.145";
 		String qurom1Disk = "(103:0:1:5)";
 		String qurom2Disk = "(102:0:0:24)";
+		String ipmiUsername ="admin";
+		String ipmiPasswd = "falcon101";
+		//int defaultTimeout = 50;
+		
+		
+		
+		/* This is the part where the configuration files needs to be set before running the setupIOMC */
+		
+		String partnerIOC = "IOC-4041";
+		
+		
 		
 		
      	//Login to Freestor
@@ -42,37 +54,33 @@ public class AlertTest {
 		driver.navigate().to("http://192.168.13.65");
 		driver.manage().window().maximize();
 		Thread.sleep(1500);
-		driver.findElement(By.xpath("//input[@name='username']")).sendKeys("superadmin");
-		driver.findElement(By.xpath("//input[@name='domain']")).sendKeys("");
-		driver.findElement(By.xpath("//input[@name='password']")).sendKeys("freestor");
+
+		findElementByXpath("//input[@name='username']","superadmin");
+		findElementByXpath("//input[@name='domain']","");
+		findElementByXpath("//input[@name='password']","freestor");
+		
 		driver.findElement(By.xpath("//button[@name='login']")).click();
 		Thread.sleep(1500);
-		//Explicit Wait for 10 sec for new page appear
-	    //WebDriverWait wait = new WebDriverWait(driver, 10);
-	    //wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("html/body/ng-include[1]/div/div/div[2]/ul")));
-		//click manage
 		
 		topDropDown("Manage");
 		selectServer(node1ServerName);	
 		manageTab("Settings");
-		//settingAction("Configuration Repository");
-	    //Find the tab elements
-		//Settings options = .title.ng-binding
-     	setUpIOC(node2ServerName,iocName,managementIP,qurom1Disk,qurom2Disk);
-		//setUpIOMC();
 
-	    //driver.findElement(By.xpath("//button[.='Submit']")).click();
-		//driver.findElement(By.xpath("//button[contains(text(),'Submit')]")).click();
+     	//setUpIOC(node2ServerName,iocName,managementIP,qurom1Disk,qurom2Disk,ipmiUsername,ipmiPasswd);
+		setUpIOMC(partnerIOC);
+
+
 		System.out.println("DONE");
 	}
-	
-private static void selectServer(String serverIP) {
+public static void findElementByXpath(String xpathLocation,String information){
+	driver.findElement(By.xpath(xpathLocation)).sendKeys(information);
+}
+public static void selectServer(String serverIP) {
 		// TODO Auto-generated method stub
-		waitUntilAppear(15, "//input[@placeholder='Search for...']");
-		driver.findElement(By.xpath("//input[@placeholder='Search for...']")).sendKeys(serverIP);
+		waitUntilAppear(50,"xpath", "//input[@placeholder='Search for...']");
+		findElementByXpath("//input[@placeholder='Search for...']",serverIP);
 		driver.findElement(By.xpath("html/body/div[1]/div/div[1]/div[2]/ul/li")).click();
 	}
-
 public static void driverSet(String browerName){
 		
 		if (browerName.equalsIgnoreCase("Chrome")){
@@ -100,15 +108,12 @@ public static void driverSet(String browerName){
 public static void clickByXpath(String locator){
 		driver.findElement(By.xpath(locator)).click();
 	}
-
 public static void clickByID(String locator){
 		driver.findElement(By.id(locator)).click();
-	}
-	
+	}	
 public static void waitFor(int sec){
 		driver.manage().timeouts().implicitlyWait(sec, TimeUnit.SECONDS);
 	}
-
 public static void alertHandler() {
 		
 		Alert alert = driver.switchTo().alert();
@@ -117,20 +122,17 @@ public static void alertHandler() {
 		alert.accept();
 
 	}
-	
 public static void alertHandler(String sendme) {
 		Alert alert = driver.switchTo().alert();
 		alert.sendKeys(sendme);
 		alert.accept();
 	}
-	
 public static void topDropDown(String tabName) {
-	waitUntilAppear(50,"html/body/ng-include[1]/div/div/div[2]/ul");
+	waitUntilAppear(50,"xpath","html/body/ng-include[1]/div/div/div[2]/ul");
     WebElement temp = driver.findElement(By.xpath("html/body/ng-include[1]/div/div/div[2]/ul"));
     List<WebElement> navList = temp.findElements(By.cssSelector("li"));
     findItemOnlist(navList, tabName);
 	}
-
 public static void findItemOnlist(List<WebElement> listOfItem, String findme) {
     for (WebElement item : listOfItem) {
     	System.out.println("Listed item "+item.getText());
@@ -141,25 +143,46 @@ public static void findItemOnlist(List<WebElement> listOfItem, String findme) {
         }
     }
 }
-
 public static void manageTab(String actionType){
-	waitUntilAppear(10,"html/body/div[1]/div/div[3]/div/div[1]/div[1]/ul");
+	waitUntilAppear(10,"xpath","html/body/div[1]/div/div[3]/div/div[1]/div[1]/ul");
 	WebElement temp = driver.findElement(By.xpath("html/body/div[1]/div/div[3]/div/div[1]/div[1]/ul"));
 	List<WebElement> navList = temp.findElements(By.cssSelector("li"));
     findItemOnlist(navList, actionType);
 	}
-
-public static void waitUntilAppear(int sec,String locator){
-	WebDriverWait wait = new WebDriverWait(driver, sec);
-	wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(locator)));
+public static void waitUntilAppear(int sec,String type, String locator){
+	
+	try {
+			WebDriverWait wait = new WebDriverWait(driver, 120);
+			//wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(locator)));
+			if (type.equalsIgnoreCase("xpath"))
+				wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(locator)));
+			if (type.equalsIgnoreCase("css"))
+				wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector(locator)));
+		} 
+	catch (NoSuchElementException e){
+			System.out.println("Element not found");
+		}
+	catch (TimeoutException e) {
+		System.out.println("Time out exception");
+		// TODO: handle exception
+		}
 	}
-
-public static void setUpIOMC(){
+public static void setUpIOMC(String partnerIOC){
+	//Go to failover page
+	
 	driver.navigate().to(driver.getCurrentUrl()+"failover");
+	
+	//Type the password for Deployment 
 	psdeployment();
+	
+	//Select the partner IOC node name
+	selectPartner(partnerIOC); 
+	//Click Validate
+	driver.findElement(By.xpath("//button[contains(text(),'Validate IO Cluster')]")).click();
+	
+	
 }
-
-public static void setUpIOC(String partnerServer,String clustername,String clusterIP,String qurom1, String qurom2) throws InterruptedException{
+public static void setUpIOC(String partnerServer,String clustername,String clusterIP,String qurom1, String qurom2,String ipmiUserName, String ipmiPassword) throws InterruptedException{
 	
 	// Go to the iocluster page
 	driver.navigate().to(driver.getCurrentUrl()+"iocluster");
@@ -177,10 +200,10 @@ public static void setUpIOC(String partnerServer,String clustername,String clust
 	waitUntilDisappear(15,"css",".modal-title");
 	
 	//Cluster name 
-	driver.findElement(By.xpath("//input[@ng-model='ioclusterItem.clusterName']")).sendKeys(clustername);
+	findElementByXpath("//input[@ng-model='ioclusterItem.clusterName']",clustername);
 	
 	//Management IP address
-	driver.findElement(By.xpath("//input[@ng-model='ioclusterItem.mgmtIp']")).sendKeys(clusterIP);
+	findElementByXpath("//input[@ng-model='ioclusterItem.mgmtIp']",clusterIP);
 		
 	//Detect Quorum Repository physical device need a better coding here for sure
 	
@@ -192,68 +215,64 @@ public static void setUpIOC(String partnerServer,String clustername,String clust
 	
 	//IPMI username, password and confirm password 
 
-	driver.findElement(By.xpath("//input[@ng-model='ioclusterItem.powercontrol.ipmi.username']")).sendKeys("admin");
-	driver.findElement(By.xpath("//input[@ng-model='ioclusterItem.powercontrol.ipmi.password']")).sendKeys("falcon111");
-	driver.findElement(By.xpath("//input[@ng-model='forms.panelFailoverForm.passwordAgain2']")).sendKeys("falcon111");
-	
+	findElementByXpath("//input[@ng-model='ioclusterItem.powercontrol.ipmi.username']",ipmiUserName);
+	findElementByXpath("//input[@ng-model='ioclusterItem.powercontrol.ipmi.password']",ipmiPassword);
+	findElementByXpath("//input[@ng-model='forms.panelFailoverForm.passwordAgain2']",ipmiPassword);
 	//Click Validate IPMI option
 	
-	driver.findElement(By.cssSelector(".btn.btn-sm.btn-primary.ng-scope")).click();
-	Thread.sleep(1500);
+	List<WebElement> buttonList =  driver.findElements(By.cssSelector(".btn.btn-sm.btn-primary"));
+	findItemOnlist(buttonList, "Validate IPMI");
+	findItemOnlist(buttonList, "Set Up IO Cluster");
+
+	//This part needs to be re-arranged to handle ipmi validation error
+/*	Thread.sleep(1500);
 	if (driver.findElement(By.xpath("html/body/div[1]/div/div[3]/div/div[2]/div/div/div/div[2]/div[2]/div/form/div[2]/div[5]/div[6]/div/div/form-error/div/span")).isDisplayed())
 		driver.findElement(By.xpath("html/body/div[1]/div/div[3]/div/div[2]/div/div/div/div[2]/div[2]/div/form/div[2]/div[5]/div[6]/div/div/form-error/div/span")).getText();
 	else
 		System.out.println("No error");
+*/	
+	//Wait until Configure IO Cluster appear then click Configure
+	waitUntilAppear(10,"css",".modal-title");
+	
 	
 }
-
 public static void psdeployment(){
-		waitUntilAppear(200, "//input[@type='password'][@placeholder='Deployment password']");
+		waitUntilAppear(200,"xpath", "//input[@type='password'][@placeholder='Deployment password']");
 		WebElement psdeployment = driver.findElement(By.xpath("//input[@type='password'][@placeholder='Deployment password']" ));
 		psdeployment.sendKeys("psdeploymenton");
 		psdeployment.sendKeys(Keys.ENTER);
 	}
-
 public static void settingAction(String tabName){
-	waitUntilAppear(200, "//div[@ng-controller='ManageSettingsCtrl']");
+	waitUntilAppear(200, "xpath","//div[@ng-controller='ManageSettingsCtrl']");
 	 WebElement temp = driver.findElement(By.xpath("//div[@ng-controller='ManageSettingsCtrl']"));
 	
 	 //"html/body/div[1]/div/div[2]/div/div[2]/div/div"
     List<WebElement> navList = temp.findElements(By.cssSelector("li"));
     findItemOnlist(navList, tabName);
 	}
-
 // Need to work on it 
 public static void slideSubmit(){
 	// letsWait(10, ".form-group");
 	WebElement temp = driver.findElement(By.cssSelector(".form-group"));
-	//"html/body/div[1]/div/div[2]/div/div[2]/div/div"
 	List<WebElement> navList = temp.findElements(By.cssSelector("li"));
 	//findItemOnlist(navList, tabName);
 	}
-
-
 //Select partner node for IOC/IOMC/Failover
-
 public static void selectPartner(String partnerNode){
-	waitUntilAppear(10, "//*[@placeholder='(Select)']");
+	waitUntilAppear(60,"xpath", "//*[@placeholder='(Select)']");
 	driver.findElement(By.xpath("//*[@placeholder='(Select)']")).click();
 	List<WebElement> navList = driver.findElements(By.cssSelector(".ui-select-choices-row-inner"));
 	findItemOnlist(navList, partnerNode);
 	}
-
-
 public static void waitUntilDisappear(int sec,String type,String locator){
-	WebDriverWait wait = new WebDriverWait(driver, sec);
+	WebDriverWait wait = new WebDriverWait(driver,120 );
 	if (type.equalsIgnoreCase("xpath"))
 		wait.until(ExpectedConditions.invisibilityOfElementLocated(By.xpath(locator)));
 	if (type.equalsIgnoreCase("css"))
 		wait.until(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(locator)));
 	}
-
-
 public static void findFromList(String listLocation, String csslistElement, String itemOnTheList){
-	waitUntilAppear(10, listLocation);
+	waitUntilAppear(10,"xpath",listLocation);
 	driver.findElement(By.xpath(listLocation)).click();
 	List<WebElement> navList = driver.findElements(By.cssSelector(csslistElement));
 	findItemOnlist(navList, itemOnTheList);
