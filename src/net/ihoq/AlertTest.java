@@ -15,6 +15,7 @@ import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.edge.EdgeDriver;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.ie.InternetExplorerDriver;
+import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedCondition;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -29,11 +30,11 @@ public static void main(String[] args) throws InterruptedException {
 		
 		/* This is the part where the configuration files needs to be set before running the setupIOC */
 		String node1ServerName = "10.6.13.42";
-		String node2ServerName = "FSS-R720-42";
-		String iocName = "FSS-Shamol";
-		String managementIP = "10.8.13.145";
-		String qurom1Disk = "(103:0:1:5)";
-		String qurom2Disk = "(102:0:0:24)";
+		String node2ServerName = "FSS-R720-43";
+		String iocName = "IOC-4243";
+		String managementIP = "10.6.13.145";
+		String qurom1Disk = "(102:0:0:2)";
+		String qurom2Disk = "(103:0:1:3)";
 		String ipmiUsername ="admin";
 		String ipmiPasswd = "falcon101";
 		//int defaultTimeout = 50;
@@ -42,7 +43,7 @@ public static void main(String[] args) throws InterruptedException {
 		
 		/* This is the part where the configuration files needs to be set before running the setupIOMC */
 		
-		String partnerIOC = "IOC-4041";
+	//	String partnerIOC = "IOC-4041";
 		
 		
 		
@@ -66,8 +67,8 @@ public static void main(String[] args) throws InterruptedException {
 		selectServer(node1ServerName);	
 		manageTab("Settings");
 
-     	//setUpIOC(node2ServerName,iocName,managementIP,qurom1Disk,qurom2Disk,ipmiUsername,ipmiPasswd);
-		setUpIOMC(partnerIOC);
+     	setUpIOC(node2ServerName,iocName,managementIP,qurom1Disk,qurom2Disk,ipmiUsername,ipmiPasswd);
+	//	setUpIOMC(partnerIOC);
 
 
 		System.out.println("DONE");
@@ -167,20 +168,31 @@ public static void waitUntilAppear(int sec,String type, String locator){
 		// TODO: handle exception
 		}
 	}
-public static void setUpIOMC(String partnerIOC){
+public static void setUpIOMC(String partnerIOC) throws InterruptedException{
 	//Go to failover page
 	
 	driver.navigate().to(driver.getCurrentUrl()+"failover");
 	
 	//Type the password for Deployment 
 	psdeployment();
-	
+	  
 	//Select the partner IOC node name
+	// driver.getPageSource();
+	
+	Thread.sleep(3000);
+	System.out.println(driver.getPageSource());
+	
+	
+	
+	
+	new WebDriverWait(driver, 10).until(ExpectedConditions.presenceOfAllElementsLocatedBy(By.cssSelector(".col-sm-7")));
+	
+	
 	selectPartner(partnerIOC); 
-	//Click Validate
-	driver.findElement(By.xpath("//button[contains(text(),'Validate IO Cluster')]")).click();
+   //Click Validate
 	
-	
+	findItemOnlist(driver.findElements(By.cssSelector(".col-sm-7")), "Validate IO Multi-Cluster");
+		
 }
 public static void setUpIOC(String partnerServer,String clustername,String clusterIP,String qurom1, String qurom2,String ipmiUserName, String ipmiPassword) throws InterruptedException{
 	
@@ -259,13 +271,15 @@ public static void slideSubmit(){
 	}
 //Select partner node for IOC/IOMC/Failover
 public static void selectPartner(String partnerNode){
-	waitUntilAppear(60,"xpath", "//*[@placeholder='(Select)']");
-	driver.findElement(By.xpath("//*[@placeholder='(Select)']")).click();
+//	waitUntilAppear(30,"xpath", "//*[@name='partnerId']");
+//	driver.findElement(By.xpath("//*[@name='partnerId']")).click();
+	
+	findItemOnlist(driver.findElements(By.cssSelector(".col-sm-7")), "(Select)");
 	List<WebElement> navList = driver.findElements(By.cssSelector(".ui-select-choices-row-inner"));
 	findItemOnlist(navList, partnerNode);
 	}
 public static void waitUntilDisappear(int sec,String type,String locator){
-	WebDriverWait wait = new WebDriverWait(driver,120 );
+	WebDriverWait wait = new WebDriverWait(driver,30);
 	if (type.equalsIgnoreCase("xpath"))
 		wait.until(ExpectedConditions.invisibilityOfElementLocated(By.xpath(locator)));
 	if (type.equalsIgnoreCase("css"))
