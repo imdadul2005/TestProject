@@ -29,7 +29,7 @@ public static void main(String[] args) throws InterruptedException {
 	 
 		
 		/* This is the part where the configuration files needs to be set before running the setupIOC */
-		String node1ServerName = "10.6.13.42";
+		String node1ServerName = "10.6.13.40";
 		String node2ServerName = "FSS-R720-43";
 		String iocName = "IOC-4243";
 		String managementIP = "10.6.13.145";
@@ -37,13 +37,11 @@ public static void main(String[] args) throws InterruptedException {
 		String qurom2Disk = "(103:0:1:3)";
 		String ipmiUsername ="admin";
 		String ipmiPasswd = "falcon101";
-		//int defaultTimeout = 50;
-		
 		
 		
 		/* This is the part where the configuration files needs to be set before running the setupIOMC */
 		
-	//	String partnerIOC = "IOC-4041";
+		String partnerIOC = "IOC-4243";
 		
 		
 		
@@ -67,8 +65,8 @@ public static void main(String[] args) throws InterruptedException {
 		selectServer(node1ServerName);	
 		manageTab("Settings");
 
-     	setUpIOC(node2ServerName,iocName,managementIP,qurom1Disk,qurom2Disk,ipmiUsername,ipmiPasswd);
-	//	setUpIOMC(partnerIOC);
+     //	setUpIOC(node2ServerName,iocName,managementIP,qurom1Disk,qurom2Disk,ipmiUsername,ipmiPasswd);
+		setUpIOMC(partnerIOC);
 
 
 		System.out.println("DONE");
@@ -180,11 +178,7 @@ public static void setUpIOMC(String partnerIOC) throws InterruptedException{
 	// driver.getPageSource();
 	
 	Thread.sleep(3000);
-	System.out.println(driver.getPageSource());
-	
-	
-	
-	
+
 	new WebDriverWait(driver, 10).until(ExpectedConditions.presenceOfAllElementsLocatedBy(By.cssSelector(".col-sm-7")));
 	
 	
@@ -193,6 +187,9 @@ public static void setUpIOMC(String partnerIOC) throws InterruptedException{
 	
 	findItemOnlist(driver.findElements(By.cssSelector(".col-sm-7")), "Validate IO Multi-Cluster");
 		
+	//If Reconfigure IOMC appear
+	
+	
 }
 public static void setUpIOC(String partnerServer,String clustername,String clusterIP,String qurom1, String qurom2,String ipmiUserName, String ipmiPassword) throws InterruptedException{
 	
