@@ -58,7 +58,7 @@ public class AlertTest {
 		driver.manage().window().maximize();
 		Thread.sleep(1500);
 		login("superadmin", "", "freestor");
-//		Thread.sleep(1500);
+
 		topDropDown("Manage");
 		//	selectServer(node1ServerName);
 		//	selectServer(node1ServerName);
@@ -108,7 +108,7 @@ public class AlertTest {
 	}
 	public static void clickAndSendByXpath(String locator, String sendItem) {
 		WebElement tempElement = driver.findElement(By.xpath(locator));
-		tempElement.sendKeys("sendItem");
+		tempElement.sendKeys(sendItem);
 		tempElement.sendKeys(Keys.ENTER);
 	}
 	public static void clickByID(String locator) {
@@ -215,28 +215,73 @@ public class AlertTest {
 		String hb_1 = "10.8.25.87";
 		String hb_2 = "10.8.25.35";
 
+		List<String> target1 = new ArrayList<String>();
+		target1.add("2101000d7709a787");
+		target1.add("2101000d7709a786");
+
+		List<String>standBy1 = new ArrayList<String>();
+		standBy1.add("2001000e1e09a786");
+		standBy1.add("2001000e1e09a787");
+
+		List<String> standBy2 = new ArrayList<String>();
+		standBy2.add("2001000e1e30a1e0");
+		standBy2.add("2001000e1e30a1e1");
+
+		List<String>target2 = new ArrayList<String>();
+		target2.add("2101000d7730a1e0");
+		target2.add("2101000d7730a1e1");
+
+		List<String> target3 = new ArrayList<String>();
+		target3.add("2101000d77c209a4");
+		target3.add("2101000d77c209a5");
+
+		List<String> standBy3 = new ArrayList<String>();
+		standBy3.add("2001000e1ec209a4");
+		standBy3.add("2001000e1ec209a5");
+
+		List<String>target4 = new ArrayList<String>();
+		target4.add("2101000d7709a8c2");
+		target4.add("2101000d7709a8c3");
+
+		List<String>standBy4 = new ArrayList<String>();
+		standBy4.add("2001000e1e09a8c2");
+		standBy4.add("2001000e1e09a8c3");
+
+
+
+
 
 		//List<WebElement> config = findElementsList(By.cssSelector(".col-sm-7"));
 
 		//.ui-select-search.input-xs.ng-pristine   .ui-select-search.input-xs.ng-pristine.ng-valid
 		List<WebElement> config = findElementsList(By.cssSelector("input[ng-click='$select.activate()']"));
-		/*findFromListIndex(config, 0, "10.8.25.86",false);
+		findFromListIndex(config, 0, "10.8.25.86",false);
 		findFromListIndex(config,1,"10.8.25.34",false);
 		findFromListIndex(config,4,"10.8.25.87",false);
 		findFromListIndex(config,5,"10.8.25.35",false);
 		findFromListIndex(config, 6, "10.8.25.32",false);
 		findFromListIndex(config,7,"10.8.25.84",false);
 		findFromListIndex(config,10,"10.8.25.33",false);
-		findFromListIndex(config,11,"10.8.25.85",false); */
-		wwpnSelection(config, 12,14);
+		findFromListIndex(config,11,"10.8.25.85",false);
+		wwpnList(config,12,target1);
+		wwpnList(config,13,standBy2);
+		wwpnList(config,14,standBy1);
+		wwpnList(config,15,target2);
+
+		wwpnList(config,16,target3);
+		wwpnList(config,17,standBy4);
+		wwpnList(config,18,standBy3);
+		wwpnList(config,19,target4);
+
+		//wwpnSelection(config, 12,14);
 		//wwpnSelection(config, 12);
-		findFromListIndex(config,13,"10.8.25.34",true);
+		/*findFromListIndex(config,13,"10.8.25.34",true);
 		findFromListIndex(config,14,"10.8.25.87",true);
 		findFromListIndex(config,15,"10.8.25.35",true);
 		findFromListIndex(config, 16, "10.8.25.32",true);
 		findFromListIndex(config,17,"10.8.25.84",true);
 		findFromListIndex(config,18,"10.8.25.33",true);
-		findFromListIndex(config,19,"10.8.25.85",true);
+		findFromListIndex(config,19,"10.8.25.85",true);*/
 	}
 
 	public static void setUpIOC(String primaryServer, String partnerServer, String clustername, String clusterIP, String qurom1, String qurom2, String ipmiUserName, String ipmiPassword) throws InterruptedException {
@@ -356,6 +401,57 @@ public class AlertTest {
 			}
 		}
 	}
+
+
+	public static void wwpnList(List<WebElement> itemLists, int targetPort,List<String> wwpn) {
+
+		List<String> adapterList = new ArrayList<String>();
+		//Check if item is Displayed
+		String dropdownList = ".ui-select-choices-row-inner";
+		if (itemLists.get(targetPort).isDisplayed()) {
+
+			itemLists.get(targetPort).click();
+		//	try {
+				//WebElement dropdown = driver.findElement(By.cssSelector(".ui-select-choices-row-inner"));
+				List<WebElement> dropDownListItems = driver.findElements(By.cssSelector(dropdownList));
+
+				//Loop until all the element of the list is selected
+				for (String wwpnInfo : wwpn) {
+						System.out.println(wwpnInfo);
+						//while(!isFound){
+						itemLists.get(targetPort).click();
+						//waitUntilAppear(10,"css",dropdownList);
+						dropDownListItems = driver.findElements(By.cssSelector(dropdownList));
+						for (int i = 0; i <dropDownListItems.size(); i++) {
+							System.out.println("dropdown list item number : " + dropDownListItems.size());
+							System.out.println("dropdown list items: "+dropDownListItems.get(i).getText());
+							if (dropDownListItems.get(i).getText().contains(wwpnInfo)) {
+								System.out.println(dropDownListItems.get(i).getText());
+								dropDownListItems.get(i).click();
+								//itemLists = findElementsList(By.cssSelector("input[ng-click='$select.activate()']"));
+								System.out.println(i);
+								break;
+								//i = 0;
+							}
+						}
+
+					}
+			//} catch (RuntimeException e) {
+			//	System.out.println("Error");
+			//}
+		}
+	}
+
+
+
+
+
+
+
+
+
+
+	// This method is to comare the adapter number for standby and target
 	public static void wwpnSelection(List<WebElement> itemLists, int targetPort,int standByPort) {
 
 
