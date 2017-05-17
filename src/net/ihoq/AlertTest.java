@@ -173,6 +173,9 @@ public class AlertTest {
 	public static void setUpIOMC(String primaryServer, String partnerIOC) throws InterruptedException {
 
 
+	    String inputBox = "input[ng-click='$select.activate()']";
+        String dropList = ".ui-select-choices-row-inner";
+
 		selectServer(primaryServer);
 		manageTab("Settings");
 
@@ -217,16 +220,16 @@ public class AlertTest {
 
 		//.ui-select-search.input-xs.ng-pristine   .ui-select-search.input-xs.ng-pristine.ng-valid
 		List<WebElement> config = findElementsList(By.cssSelector("input[ng-click='$select.activate()']"));
-		findFromListIndex(config, 0, "10.8.25.86",false);
+		/*findFromListIndex(config, 0, "10.8.25.86",false);
 		findFromListIndex(config,1,"10.8.25.34",false);
 		findFromListIndex(config,4,"10.8.25.87",false);
 		findFromListIndex(config,5,"10.8.25.35",false);
 		findFromListIndex(config, 6, "10.8.25.32",false);
 		findFromListIndex(config,7,"10.8.25.84",false);
 		findFromListIndex(config,10,"10.8.25.33",false);
-		findFromListIndex(config,11,"10.8.25.85",false);
-		wwpnSelection(config, 12);
-		wwpnSelection(config, 12);
+		findFromListIndex(config,11,"10.8.25.85",false); */
+		wwpnSelection(config, 12,14);
+		//wwpnSelection(config, 12);
 		findFromListIndex(config,13,"10.8.25.34",true);
 		findFromListIndex(config,14,"10.8.25.87",true);
 		findFromListIndex(config,15,"10.8.25.35",true);
@@ -353,58 +356,81 @@ public class AlertTest {
 			}
 		}
 	}
-	public static void wwpnSelection(List<WebElement> itemLists, int index) {
+	public static void wwpnSelection(List<WebElement> itemLists, int targetPort,int standByPort) {
 
 
+        List<String> adapterList = new ArrayList<String>();
+        //Check if item is Displayed
+        if (itemLists.get(targetPort).isDisplayed()) {
 
-		List<String> adapterList = new ArrayList<String>();
-		//Check if item is Displayed
-		if (itemLists.get(index).isDisplayed()) {
+            itemLists.get(targetPort).click();
 
-				itemLists.get(index).click();
+            // This is to select the first element of the list
+            try {
+                WebElement dropdown = driver.findElement(By.cssSelector(".ui-select-choices-row-inner"));
+                // dropdown = driver.findElement(By.cssSelector(".ui-select-choices-row-inner"));
 
-				// This is to select the first element of the list
-			try {
-				WebElement	dropdown = driver.findElement(By.cssSelector(".ui-select-choices-row-inner"));
-			// dropdown = driver.findElement(By.cssSelector(".ui-select-choices-row-inner"));
+                //Need to find the list of the elements of the list
+                List<WebElement> navList = driver.findElements(By.cssSelector(".ui-select-choices-row-inner"));
 
-				//Need to find the list of the elements of the list
-				List<WebElement> navList =  driver.findElements(By.cssSelector(".ui-select-choices-row-inner"));
+                //Loop until all the element of the list is selected
+                for (int i = 0; i <= navList.size() - 1; i++) {
 
-				//Loop until all the element of the list is selected
-				for (int i=0;i<=navList.size()-1;i++) {
+                    System.out.println("Before :" + itemLists.size() + " " + navList.size());
+                    System.out.println("Listed item " + dropdown.getText());
+                    adapterList.add(getAdapterNumber(dropdown.getText()));
+                    dropdown.click();
+                    itemLists.get(targetPort).click();
+                    //navList.get(0).click();
+                    //.ui-select-search.input-xs.ng-pristine.ng-valid
+                    itemLists = findElementsList(By.cssSelector("input[ng-click='$select.activate()']"));
+                    try {
+                        dropdown = driver.findElement(By.cssSelector(".ui-select-choices-row-inner"));
+                    } catch (RuntimeException e) {
+                        break;
+                    }
+                    //itemLists.get(index).click();
+                    System.out.println(itemLists.size() + " " + navList.size());
+                    //itemLists.get(index).click();
+                }
+            } catch (RuntimeException e) {
+            }
 
-					System.out.println("Before :"+ itemLists.size() + " "+navList.size());
-					System.out.println("Listed item " + dropdown.getText());
-					adapterList.add(getAdapterNumber(dropdown.getText()));
-					dropdown.click();
-					itemLists.get(index).click();
-					//navList.get(0).click();
-					//.ui-select-search.input-xs.ng-pristine.ng-valid
-		    		itemLists = findElementsList(By.cssSelector("input[ng-click='$select.activate()']"));
-					try {
-						dropdown = driver.findElement(By.cssSelector(".ui-select-choices-row-inner"));
-					}
-					catch (RuntimeException  e){
-						break;
-					}
-					//itemLists.get(index).click();
-		    		System.out.println(itemLists.size() + " "+navList.size());
-					//itemLists.get(index).click();
-				}
-			}
-			catch (RuntimeException  e){
-			}
-
-		}
-		System.out.println(adapterList.toString());
+        }
+        System.out.println(adapterList.toString());
 
 
-		//StandBy WWPN Selection
+        //StandBy WWPN Selection
 
+        if (itemLists.get(standByPort).isDisplayed()) {
 
+            itemLists.get(standByPort).click();
 
-	}
+            // This is to select the first element of the list
+            try {
+                //WebElement	dropdown = driver.findElement(By.cssSelector(".ui-select-choices-row-inner"));
+                List<WebElement> navList = driver.findElements(By.cssSelector(".ui-select-choices-row-inner"));
+
+                //Loop until all the element of the list is selected
+
+                for (int i = 0; i < adapterList.size(); i++) {
+                    System.out.println("Adapter index " + i);
+                    for (WebElement x : navList) {
+                        if (x.getText().contains(adapterList.get(i))) {
+                            System.out.println("Match found at index "+i  + " "+ adapterList.get(i) + " " + x.getText());
+                            x.click();
+                            navList = driver.findElements(By.cssSelector(".ui-select-choices-row-inner"));
+                            itemLists = findElementsList(By.cssSelector("input[ng-click='$select.activate()']"));
+                        }
+                        navList = driver.findElements(By.cssSelector(".ui-select-choices-row-inner"));
+                    }
+                }
+
+            }
+            catch (RuntimeException e) {
+            }
+        }
+    }
 
 	public static List<WebElement> findElementsList(By locator) {
 		return driver.findElements(locator);
